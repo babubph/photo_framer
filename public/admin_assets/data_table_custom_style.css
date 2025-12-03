@@ -1,0 +1,40 @@
+table th{
+    border:solid 1px #818181;
+    background-color:#002D3E;
+    color:#FFF;
+  }
+
+  table td a{
+    color:#002D3E;
+  }
+
+  table td a:hover{
+    color:#ED1651;
+  }
+
+
+  div.dataTables_filter,
+  div.dataTables_length {
+    display: inline-block;
+    margin-left: 1em;
+    float:right;
+  }
+
+  div.dataTables_filter input {
+    padding:15px;
+    width: 250px !important;
+  }
+
+  div.dataTables_info {
+    display: inline-block;
+    margin-left: 1em;
+    float:left;
+    font-size:20px;
+  }
+
+  .card-title.top-title {
+    color: #002D3E !important;
+    font-size: 20px;
+    font-weight: 500;
+  }
+
