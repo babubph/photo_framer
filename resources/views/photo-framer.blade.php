@@ -77,10 +77,21 @@
             <div class="frame-selector">
                 <h3>Select your favourite Frame</h3>
                 <div class="thumbnail-container">
-                    <div class="thumbnail active" data-frame="frame1">
-                        <img src="{{asset('images/frames/frame-1.png')}}">
+                    @foreach ($frames as $frame)
+
+                    @php 
+                        if($loop->iteration == 1){
+                            $isActive = "active";
+                        }else{
+                            $isActive = "";
+                        }
+                    @endphp
+
+                    <div class="thumbnail {{$isActive}}" data-frame="frame{{ $loop->iteration }}">
+                        <img src="{{asset('images/frames/'. $frame->frame_image)}}">
                     </div>
-                    <div class="thumbnail" data-frame="frame2">
+                    @endforeach
+                    <!-- <div class="thumbnail" data-frame="frame2">
                         <img src="{{asset('images/frames/frame-2.png')}}">
                     </div>
                     <div class="thumbnail" data-frame="frame3">
@@ -88,7 +99,7 @@
                     </div>
                     <div class="thumbnail" data-frame="frame4">
                         <img src="{{asset('images/frames/frame-4.png')}}">
-                    </div>
+                    </div> -->
                 </div>
             </div>
             
@@ -131,12 +142,12 @@
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
         
         // Frame definitions - Transparent frames with inner borders
-        const frames = {
-            frame1: `{{asset('images/frames/frame-1.png')}}`,
-            frame2: `{{asset('images/frames/frame-2.png')}}`,
-            frame3: `{{asset('images/frames/frame-3.png')}}`,
-            frame4: `{{asset('images/frames/frame-4.png')}}`
+       const frames = {
+            @foreach ($frames as $index => $frame)
+                ["frame{{ $index+1 }}"] : "{{ asset('images/frames/' . $frame->frame_image) }}",
+            @endforeach
         };
+
         
         // State variables
         let currentFrame = 'frame1';

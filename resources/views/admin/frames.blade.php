@@ -238,11 +238,12 @@
                              @endif
                              <div style="padding:10px 0">
                               <a class="btn btn-danger btn-sm" href="{{ route('delete-frame', $frame->id) }}" onClick="return confirmation()">Delete</a> &nbsp;&nbsp;&nbsp;
-                              @if($frame->status =="Active")
-                              <a class="btn btn-success btn-sm" href="{{ route('delete-frame', $frame->id) }}">Active</a>
+                              @if($frame->status == "Active")
+                                  <a class="btn btn-success btn-sm" href="{{ route('inactive-frame', $frame->id) }}">Active</a>
                               @else 
-                                <a class="btn btn-danger btn-sm" href="{{ route('delete-frame', $frame->id) }}">Inactive</a>
+                                  <a class="btn btn-danger btn-sm" href="{{ route('active-frame', $frame->id) }}">Inactive</a>
                               @endif
+
                             </div>
                           </div>
                        </div>

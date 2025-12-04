@@ -12,6 +12,8 @@ Route::get('/', [PublicController::class, 'FramerHome']);
 Route::post('/upload-framed-photo', [PublicController::class, 'uploadFramedPhoto'])
     ->withoutMiddleware([VerifyCsrfToken::class]);
 
+Route::get('/view-photo/{id}', [FramerController::class, 'ViewPhoto']);    
+
 //Admin
 Route::get('/login', [AuthController::class, 'LoginPage'])->name('login');
 Route::post('check-login', [AuthController::class, 'LoginProcess']);
@@ -36,5 +38,11 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('/frame/new', [FramerController::class, 'NewFrame'])->name('new-frame');
     Route::post('/frame/save', [FramerController::class, 'SaveFrame'])->name('save-frame');
     Route::get('/frame/delete/{id}', [FramerController::class, 'DeleteFrame'])->name('delete-frame');
+
+    Route::get('/frame/active/{id}', [FramerController::class, 'ActiveFrame'])->name('active-frame');
+    Route::get('/frame/inactive/{id}', [FramerController::class, 'InactiveFrame'])->name('inactive-frame');
+
+
+
 
 });

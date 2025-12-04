@@ -15,7 +15,26 @@ class FramerController extends Controller
        public function SaveFrame(Request $request){
    
         $image = $request->frame_image;
-        $filename = time() . '_' . $image->getClientOriginalName();
+
+        // get original name without extension
+        $originalName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+
+        // convert to lowercase
+        $cleanName = strtolower($originalName);
+
+        // remove special characters & replace spaces with hyphen
+        $cleanName = preg_replace('/[^a-z0-9]+/', '-', $cleanName);
+
+        // remove repeated hyphens
+        $cleanName = trim($cleanName, '-');
+
+        // get extension (also lowercase)
+        $ext = strtolower($image->getClientOriginalExtension());
+
+        // final filename
+        $filename = time() . '_' . $cleanName . '.' . $ext;
+
+        // move file
         $image->move(public_path('images/frames'), $filename);
 
         $data = [
@@ -32,7 +51,7 @@ class FramerController extends Controller
             ->with('msg_type', 'success');
     }
 
-        public function DeleteFrame($id){
+    public function DeleteFrame($id){
 
           $client = Frame::find($id);
 
@@ -42,6 +61,38 @@ class FramerController extends Controller
             ->with('message', 'Delete Successfully')
             ->with('msg_type', 'error');
     }
+
+    public function ActiveFrame($id)
+    {
+        $frame = Frame::find($id);
+
+        if ($frame) {
+            $frame->update([
+                'status' => "Inactive"
+            ]);
+        }
+
+        return redirect()->route('new-frame')
+            ->with('message', 'Update Successfully')
+            ->with('msg_type', 'success');
+    }
+
+    public function InactiveFrame($id)
+    {
+        $frame = Frame::find($id);
+
+        dd($frame);
+        if ($frame) {
+            $frame->update([
+                'status' => "Active"
+            ]);
+        }
+
+        return redirect()->route('new-frame')
+            ->with('message', 'Update Successfully')
+            ->with('msg_type', 'success');
+    }
+
 
 
 }
