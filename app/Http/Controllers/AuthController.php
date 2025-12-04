@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\UploadPhoto;
 
 class AuthController extends Controller
 {
@@ -36,7 +37,8 @@ class AuthController extends Controller
     }
 
     public function Dashboard(){
-        return view('admin.dashboard');
+      $data['photos'] = UploadPhoto::orderBy("id", "DESC")->get();
+        return view('admin.dashboard', $data);
       }
 
        // User Logout ---->

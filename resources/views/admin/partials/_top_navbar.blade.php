@@ -193,18 +193,11 @@
           
            <li class="nav-item">
             <a href="{{ route('new-frame') }}" class="nav-link menu-link">
-              <b>Frames</b>
+              <b>Add Frames</b>
             </a>
           </li>
 
-          <li class="nav-item">
-            <a href="" class="nav-link menu-link">
-              <b>Uploaded Photos</b>
-            </a>
-          </li>
-
-        
-
+         
 
   
         </ul>

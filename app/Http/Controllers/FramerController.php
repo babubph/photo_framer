@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Frame;
+use App\Models\UploadPhoto;
 
 class FramerController extends Controller
 {
@@ -68,7 +69,7 @@ class FramerController extends Controller
 
         if ($frame) {
             $frame->update([
-                'status' => "Inactive"
+                'status' => "Active"
             ]);
         }
 
@@ -81,16 +82,27 @@ class FramerController extends Controller
     {
         $frame = Frame::find($id);
 
-        dd($frame);
+       
         if ($frame) {
             $frame->update([
-                'status' => "Active"
+                'status' => "inactive"
             ]);
         }
 
         return redirect()->route('new-frame')
             ->with('message', 'Update Successfully')
             ->with('msg_type', 'success');
+    }
+
+     public function DeleteUploadedPhoto($id){
+
+          $client = UploadPhoto::find($id);
+
+          $client->delete();
+
+         return redirect()->route('dashboard')
+            ->with('message', 'Delete Successfully')
+            ->with('msg_type', 'error');
     }
 
 

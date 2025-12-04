@@ -12,7 +12,6 @@
     <div class="container">
         <header>
             <h1>Photo Framer</h1>
-            <p class="subtitle">Upload your photo, drag to position and adjust zoom, apply frames, and save to server.</p>
         </header>
         
         <main>
@@ -77,6 +76,7 @@
             <div class="frame-selector">
                 <h3>Select your favourite Frame</h3>
                 <div class="thumbnail-container">
+                   
                     @foreach ($frames as $frame)
 
                     @php 
@@ -87,19 +87,12 @@
                         }
                     @endphp
 
+                    
                     <div class="thumbnail {{$isActive}}" data-frame="frame{{ $loop->iteration }}">
                         <img src="{{asset('images/frames/'. $frame->frame_image)}}">
                     </div>
                     @endforeach
-                    <!-- <div class="thumbnail" data-frame="frame2">
-                        <img src="{{asset('images/frames/frame-2.png')}}">
-                    </div>
-                    <div class="thumbnail" data-frame="frame3">
-                        <img src="{{asset('images/frames/frame-3.png')}}">
-                    </div>
-                    <div class="thumbnail" data-frame="frame4">
-                        <img src="{{asset('images/frames/frame-4.png')}}">
-                    </div> -->
+         
                 </div>
             </div>
             
@@ -130,6 +123,7 @@
         const saveBtn = document.getElementById('save-btn');
         const saveArea = document.getElementById('save-area');
         const messageContainer = document.getElementById('message-container');
+
         
         // Control buttons
         const zoomInBtn = document.getElementById('zoom-in-btn');
@@ -166,11 +160,30 @@
         frameOverlay.style.display = 'block';
         
         // Initialize canvas
-        function initCanvas() {
+      function initCanvas() {
             const rect = frameContainer.getBoundingClientRect();
-            previewCanvas.width = rect.width;
-            previewCanvas.height = rect.height;
+
+            if (!hasImage || !image) {
+                // fallback to square
+                previewCanvas.width = rect.width;
+                previewCanvas.height = rect.width;
+            } else {
+                const imgRatio = image.width / image.height;
+                let canvasWidth = rect.width;
+                let canvasHeight = canvasWidth / imgRatio;
+
+                // if height exceeds container, adjust
+                if (canvasHeight > rect.height) {
+                    canvasHeight = rect.height;
+                    canvasWidth = canvasHeight * imgRatio;
+                }
+
+                previewCanvas.width = canvasWidth;
+                previewCanvas.height = canvasHeight;
+            }
+
             previewCtx = previewCanvas.getContext('2d');
+            
         }
         
         // Show message
@@ -207,66 +220,41 @@
         
         // Draw preview
         function drawPreview() {
-            if (!hasImage || !image || !previewCtx) return;
-            
-            const canvasWidth = previewCanvas.width;
-            const canvasHeight = previewCanvas.height;
-            
-            // Clear canvas
-            previewCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-            
-            // Draw white background
-            previewCtx.fillStyle = 'white';
-            previewCtx.fillRect(0, 0, canvasWidth, canvasHeight);
-            
-            // Frame dimensions (relative to canvas)
-            const framePadding = 0.04; // 4% padding on each side
-            const frameInnerSize = 1 - (framePadding * 2); // 92% inner area
-            
-            // Calculate visible area
-            const visibleWidth = frameInnerSize / scale;
-            const visibleHeight = frameInnerSize / scale;
-            
-            // Calculate center of canvas
-            const canvasCenterX = canvasWidth / 2;
-            const canvasCenterY = canvasHeight / 2;
-            
-            // Convert position from pixels to percentage of canvas
-            const posXPercent = posX / canvasWidth;
-            const posYPercent = posY / canvasHeight;
-            
-            // Calculate source rectangle in original image
-            const imageCenterX = image.width / 2;
-            const imageCenterY = image.height / 2;
-            
-            // Calculate the offset in image coordinates
-            const imageOffsetX = posXPercent * image.width / scale;
-            const imageOffsetY = posYPercent * image.height / scale;
-            
-            // Calculate source rectangle
-            const sourceX = imageCenterX - (image.width * visibleWidth / 2) - imageOffsetX;
-            const sourceY = imageCenterY - (image.height * visibleHeight / 2) - imageOffsetY;
-            const sourceWidth = image.width * visibleWidth;
-            const sourceHeight = image.height * visibleHeight;
-            
-            // Calculate destination rectangle
-            const destX = canvasWidth * framePadding;
-            const destY = canvasHeight * framePadding;
-            const destWidth = canvasWidth * frameInnerSize;
-            const destHeight = canvasHeight * frameInnerSize;
-            
-            // Draw the image
-            previewCtx.drawImage(
-                image,
-                Math.max(0, sourceX), Math.max(0, sourceY),
-                Math.min(sourceWidth, image.width - Math.max(0, sourceX)),
-                Math.min(sourceHeight, image.height - Math.max(0, sourceY)),
-                destX, destY,
-                destWidth, destHeight
-            );
-            
-            updateZoomIndicator();
-        }
+    if (!hasImage || !image || !previewCtx) return;
+
+    const canvasWidth = previewCanvas.width;
+    const canvasHeight = previewCanvas.height;
+
+    // Clear canvas
+    previewCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+    // White background
+    previewCtx.fillStyle = 'white';
+    previewCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // Image dimensions with scale
+    const imgRatio = image.width / image.height;
+    let drawWidth = canvasWidth * scale;
+    let drawHeight = drawWidth / imgRatio;
+
+    if (drawHeight < canvasHeight * scale) {
+        drawHeight = canvasHeight * scale;
+        drawWidth = drawHeight * imgRatio;
+    }
+
+    // Draw image centered + dragged
+    const drawX = (canvasWidth - drawWidth) / 2 + posX;
+    const drawY = (canvasHeight - drawHeight) / 2 + posY;
+
+    previewCtx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+
+    // Draw frame overlay
+    frameOverlay.style.width = canvasWidth + 'px';
+    frameOverlay.style.height = canvasHeight + 'px';
+
+    updateZoomIndicator();
+}
+
         
         // Reset image transform
         function resetZoom() {
@@ -291,8 +279,24 @@
         
         // Calculate max drag distance based on zoom level
         function getMaxDrag() {
-            return previewCanvas.width * 0.5 * (scale - 1);
-        }
+                if (!hasImage || !image) return {x:0, y:0};
+
+                const canvasWidth = previewCanvas.width;
+                const canvasHeight = previewCanvas.height;
+                const imgRatio = image.width / image.height;
+
+                let imgW = canvasWidth * scale;
+                let imgH = imgW / imgRatio;
+                if (imgH < canvasHeight * scale) {
+                    imgH = canvasHeight * scale;
+                    imgW = imgH * imgRatio;
+                }
+
+                return {
+                    x: Math.max(0, (imgW - canvasWidth) / 2),
+                    y: Math.max(0, (imgH - canvasHeight) / 2)
+                };
+            }
         
         // Set zoom from slider value
         function setZoomFromSlider(value) {
@@ -339,6 +343,7 @@
             posY = Math.max(-maxDrag, Math.min(maxDrag, posY));
             
             drawPreview();
+            uploadInput
         }
         
         // Create framed image and upload to server
@@ -381,7 +386,8 @@
                 // Prepare FormData
                 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
                 const formData = new FormData();
-                const fileName = `framed-photo-${Date.now()}.png`;
+                const imageId = `framed-photo-${Date.now()}`;
+                const fileName = `${imageId}.png`;
                 console.log('Generated filename:', fileName);
 
                 formData.append('framed_image', blob, fileName);
@@ -405,6 +411,7 @@
 
                 let result;
                 try {
+                    window.location.href = "{{ url('/view-photo') }}/" + imageId;
                     result = await response.json();
                     console.log('Parsed JSON:', result);
                 } catch (e) {
@@ -418,12 +425,12 @@
                     showMessage(`Image saved successfully! Path: ${result.path}`, 'success');
 
                     // Optional: Trigger download
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = URL.createObjectURL(blob);
-                    downloadLink.download = fileName;
-                    document.body.appendChild(downloadLink);
-                    downloadLink.click();
-                    document.body.removeChild(downloadLink);
+                    // const downloadLink = document.createElement('a');
+                    // downloadLink.href = URL.createObjectURL(blob);
+                    // downloadLink.download = fileName;
+                    // document.body.appendChild(downloadLink);
+                    // downloadLink.click();
+                    // document.body.removeChild(downloadLink);
 
                 } else {
                     throw new Error(result.message || 'Upload failed');
@@ -483,6 +490,8 @@
                         
                         // Draw initial preview
                         drawPreview();
+
+                        uploadButton.style.display = "none";
                         
                         showMessage('Photo uploaded successfully!', 'success');
                     } catch (error) {
@@ -496,47 +505,37 @@
         });
         
         // Mouse drag to move
-        frameContainer.addEventListener('mousedown', (e) => {
+      frameContainer.addEventListener('mousedown', e => {
             if (!hasImage) return;
-            
             isDragging = true;
-            frameContainer.classList.add('dragging');
             startX = e.clientX;
             startY = e.clientY;
             startPosX = posX;
             startPosY = posY;
-            
-            e.preventDefault();
         });
-        
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging || !hasImage) return;
-            
+                
+       document.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
-            
+
             const maxDrag = getMaxDrag();
-            posX = Math.max(-maxDrag, Math.min(maxDrag, startPosX + dx));
-            posY = Math.max(-maxDrag, Math.min(maxDrag, startPosY + dy));
-            
+            posX = Math.max(-maxDrag.x, Math.min(maxDrag.x, startPosX + dx));
+            posY = Math.max(-maxDrag.y, Math.min(maxDrag.y, startPosY + dy));
+
             drawPreview();
         });
         
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                frameContainer.classList.remove('dragging');
-            }
+       document.addEventListener('mouseup', () => {
+            isDragging = false;
         });
         
-        // Mouse wheel zoom
-        frameContainer.addEventListener('wheel', (e) => {
-            if (!hasImage) return;
-            e.preventDefault();
-            
-            zoomWithWheel(e);
-        });
-        
+       frameContainer.addEventListener('wheel', function(e) {
+            e.preventDefault();   // Stop page scrolling
+        }, { passive: false });
+
+                
         // Zoom slider
         zoomSlider.addEventListener('input', function() {
             if (!hasImage) return;
@@ -544,39 +543,55 @@
         });
         
         // Touch support for mobile
-        frameContainer.addEventListener('touchstart', (e) => {
-            if (!hasImage) return;
-            
-            isDragging = true;
-            frameContainer.classList.add('dragging');
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            startPosX = posX;
-            startPosY = posY;
-            
-            e.preventDefault();
-        });
+ frameContainer.addEventListener("touchstart", function (e) {
+    if (!hasImage) return;
+
+    isDragging = true;
+    document.body.style.overflow = "hidden";
+
+    const rect = frameContainer.getBoundingClientRect();
+
+    startX = e.touches[0].clientX - rect.left;
+    startY = e.touches[0].clientY - rect.top;
+
+    startPosX = posX;
+    startPosY = posY;
+
+    e.preventDefault();
+});
+
         
-        document.addEventListener('touchmove', (e) => {
-            if (!isDragging || !hasImage) return;
-            
-            const dx = e.touches[0].clientX - startX;
-            const dy = e.touches[0].clientY - startY;
-            
-            const maxDrag = getMaxDrag();
-            posX = Math.max(-maxDrag, Math.min(maxDrag, startPosX + dx));
-            posY = Math.max(-maxDrag, Math.min(maxDrag, startPosY + dy));
-            
-            drawPreview();
-            e.preventDefault();
-        });
+frameContainer.addEventListener("touchmove", function (e) {
+    if (!isDragging) return;
+
+    const rect = frameContainer.getBoundingClientRect();
+
+    const currentX = e.touches[0].clientX - rect.left;
+    const currentY = e.touches[0].clientY - rect.top;
+
+    const dx = currentX - startX;
+    const dy = currentY - startY;
+
+    const maxDrag = getMaxDrag();
+    posX = Math.max(-maxDrag.x, Math.min(maxDrag.x, startPosX + dx));
+    posY = Math.max(-maxDrag.y, Math.min(maxDrag.y, startPosY + dy));
+
+    drawPreview();
+    e.preventDefault();
+});
+
+
+document.addEventListener('touchend', () => {
+    isDragging = false;
+    document.body.style.overflow = "auto";  
+});
+
+frameContainer.addEventListener('touchcancel', () => {
+    isDragging = false;
+    document.body.style.overflow = "auto";  
+});
         
-        document.addEventListener('touchend', () => {
-            if (isDragging) {
-                isDragging = false;
-                frameContainer.classList.remove('dragging');
-            }
-        });
+ 
         
         // Control buttons
         zoomInBtn.addEventListener('click', () => {

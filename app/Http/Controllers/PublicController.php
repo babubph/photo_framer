@@ -9,7 +9,7 @@ use App\Models\UploadPhoto;
 class PublicController extends Controller
 {
     public function FramerHome(){
-          $data['frames'] = Frame::limit(4)->get();
+          $data['frames'] = Frame::where('status', 'Active')->limit(4)->get();
           return view('photo-framer', $data);
       }
 
@@ -17,10 +17,7 @@ class PublicController extends Controller
     {
         try {
             // Validate the request
-            $request->validate([
-                'framed_image' => 'required|image|mimes:png,jpg,jpeg|max:5120', // 5MB max
-                
-            ]);
+         
 
             // Get uploaded file
             $image = $request->file('framed_image');

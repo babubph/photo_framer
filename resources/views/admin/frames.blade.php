@@ -230,7 +230,7 @@
                   <div class="row">
                     @foreach ($frames as $frame)
                        <div class="col-2">
-                          <div style="padding:10px; margin-bottom:10px; border: solid 1px #ccc;">
+                          <div style="padding:10px; margin-bottom:10px; @if($frame->status == "Active") border: solid 5px #10B740; @else border: solid 1px #ccc;  @endif">
                              @if($frame->frame_image)
                                  <img src="{{ asset('images/frames/' . $frame->frame_image) }}" alt="image" width="100%">
                               @else
@@ -463,45 +463,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Convert canvas to blob
     canvas.toBlob(function(blob) {
-      if (!blob) {
-        console.error('Could not create blob from canvas');
-        return;
-      }
+    if (!blob) return;
 
-      // Create file from blob
-      const croppedFile = new File([blob], originalFile.name, {
-        type: 'image/jpeg',
-        lastModified: Date.now()
-      });
+    // Keep PNG transparency
+    const croppedFile = new File(
+        [blob],
+        originalFile.name.replace(/\.[^/.]+$/, "") + ".png",
+        { type: 'image/png', lastModified: Date.now() }
+    );
 
-      // Create data URL for preview
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        // Update preview image
-        const previewId = 'imagePreview_profile'; // Fixed: directly use the ID
-        const preview = document.getElementById(previewId);
-        if (preview) {
-          preview.src = e.target.result;
-          preview.style.display = 'block';
-        }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('imagePreview_profile');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
 
-        // Create a new file input with the cropped file
         const fileInput = document.getElementById('fileUpload_profile');
-        if (fileInput) {
-          const dataTransfer = new DataTransfer();
-          dataTransfer.items.add(croppedFile);
-          fileInput.files = dataTransfer.files;
-        }
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(croppedFile);
+        fileInput.files = dataTransfer.files;
 
-        // Close modal
         cropperModal.style.display = 'none';
-        if (cropper) {
-          cropper.destroy();
-          cropper = null;
-        }
-      };
-      reader.readAsDataURL(blob);
-    }, 'image/jpeg', 0.9);
+        cropper.destroy();
+        cropper = null;
+    };
+
+    reader.readAsDataURL(croppedFile);
+
+}, 'image/png', 1.0);
+
   });
 });
 
