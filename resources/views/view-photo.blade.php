@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo Framer</title>
+    <title>NUDIA Mobile Photo Framer</title>
+    <link rel="icon" href="{{ asset('assets/favicon.png') }}" type="image/png">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -17,7 +18,7 @@
 
         header {
             text-align: center;
-            padding: 30px 10px;
+            padding: 10px 10px;
 
         }
 
@@ -44,18 +45,25 @@
             text-align: center;
         }
 
-        /* Responsive Frame Wrapper */
-        .frame-wrapper {
-            width: 100%;
-            background: linear-gradient(#000000, #3a3a3a);
-            padding: 15px;
-            border-radius: 10px;
-        }
+       /* Responsive Frame Wrapper */
+.frame-wrapper {
+    width: 100%;
+    max-width: 500px; /* Prevent stretching too wide */
+    margin: 0 auto;   /* Center on page */
+background:  #e0e0e0;
+    padding: 15px;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
 
-        .frame-wrapper img {
-            width: 100%;
-            border-radius: 8px;
-        }
+/* Make image fully responsive */
+.frame-wrapper img {
+    width: 100%;
+    height: auto;      /* VERY IMPORTANT */
+    display: block;    /* Removes unwanted gaps */
+    border-radius: 8px;
+}
+
 
         /* Buttons */
         .download-btn,
@@ -100,17 +108,14 @@
         }
 
         /* Caption Box */
-        .caption-box {
-            background: #1f3e2a;
-            padding: 15px;
+       .caption-box {
+            background: #1e3b29;
             color: white;
+            padding: 18px;
+            border-radius: 6px;
+            margin-top: 15px;
             font-size: 15px;
             line-height: 1.6;
-            width: 100%;
-            max-width: 700px;
-            margin: 15px auto 0;
-            border-radius: 6px;
-            text-align: left;
         }
 
         footer {
@@ -143,7 +148,7 @@
 <div class="container">
 
       <header>
-            <h1>Photo Framer</h1>
+            <img src="{{asset('images/logo.png')}}" class="" src="" alt="Selected Frame" width="200">
             <p class="subtitle">"Download your photo, share it, and stand a chance to win exciting prizes!"</p>
         </header>
 

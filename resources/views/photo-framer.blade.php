@@ -3,24 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Photo Framer</title>
+
+    <!-- SEO Meta Tags -->
+    <title>NUDIA Mobile Photo Framer</title>
+    <meta name="description" content="NUDIA Mobile Photo Framer – Capture, customize, and frame your photos instantly. A fast and easy tool for creating beautiful framed photos on your mobile device.">
+
+    <!-- Open Graph (For Social Sharing) -->
+    <meta property="og:title" content="NUDIA Mobile Photo Framer">
+    <meta property="og:description" content="Create beautiful mobile photo frames instantly with NUDIA Mobile Photo Framer. Easy editing, fast rendering, and high-quality output.">
+    <meta property="og:image" content="{{ asset('assets/images/preview.jpg') }}">
+    <meta property="og:type" content="website">
+
+    <!-- Favicon (Optional) -->
+    <link rel="icon" href="{{ asset('assets/favicon.png') }}" type="image/png">
+
+    <!-- Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <link rel="stylesheet" href="{{asset('assets/style.css')}}">
+    <link rel="stylesheet" href="{{ asset('assets/style.css') }}">
 </head>
+
 <body>
     <div class="container">
         <header>
-            <h1>Photo Framer</h1>
+            <table style="width: 100%">
+                <tr>
+                    <td>
+                        <a href="{{ url('/') }}">
+                        <img src="{{asset('assets/refresh.png')}}" class="" src="" alt="Selected Frame" width="30">
+                        </a>
+                    </td>
+                    <td><img src="{{asset('images/logo.png')}}" class="" src="" alt="Selected Frame" width="200"></td>
+                    <td><img src="{{asset('assets/blank.png')}}" class="" src="" alt="Selected Frame" width="30"></td>
+                </tr>
+            </table>
+            
         </header>
         
         <main>
-            <button class="upload-btn" id="upload-button">
-                <i class="fas fa-cloud-upload-alt"></i> Upload Photo
-            </button>
             <input type="file" id="file-input" accept="image/*">
             
-            <div class="main-content">
+            <div class="main-content" style="margin-top:-20px;">
                 <div class="working-area">
                    
                     <div class="image-frame-container" id="frame-container">
@@ -33,10 +58,10 @@
                     <div class="zoom-controls" style="margin-top:-10px;">
                         <div class="zoom-slider-container">
                             <div class="zoom-label">
-                                <i class="fas fa-search"></i> Zoom Level
+                                <i class="fas fa-search"></i> Zoom
                             </div>
                             <input type="range" class="zoom-slider" id="zoom-slider" min="20" max="300" value="100" step="5">
-                            <div class="zoom-value" id="zoom-value">100%</div>
+                  
                         </div>
                         <div class="zoom-buttons" style="display:none">
                             <button class="control-btn" id="zoom-in-btn">
@@ -72,9 +97,13 @@
                 </button>
 
             </div>
+
+              <button class="upload-btn" id="upload-button">
+                <i class="fas fa-cloud-upload-alt"></i> Upload Photo
+            </button>
             
-            <div class="frame-selector">
-                <h3>Select your favourite Frame</h3>
+            <div class="frame-selector" style="margin-top:-15px;">
+                <div style="margin-top:0px;">Select your favourite Frame</div>
                 <div class="thumbnail-container">
                    
                     @foreach ($frames as $frame)
@@ -94,19 +123,16 @@
                     @endforeach
          
                 </div>
+                <div style="margin-top: 15px; font-size:14px;">&copy; 2025 | Developed by Teamdjango</div>
             </div>
+
+            
             
             
         </main>
         
-        <footer>
-            <p>Photo Framer &copy; 2025 | Developed by Teamdjango</p>
-
-        </footer>
     </div>
 
-    <!-- Message Container -->
-    <div class="message-container" id="message-container"></div>
 
     <script>
         // DOM elements
@@ -154,37 +180,42 @@
         let startPosX, startPosY;
         let image = null;
         let previewCtx = null;
+        let pageScrollLocked = false;
         
         // Set initial frame
         frameOverlay.src = frames[currentFrame];
         frameOverlay.style.display = 'block';
         
         // Initialize canvas
-      function initCanvas() {
-            const rect = frameContainer.getBoundingClientRect();
+     function initCanvas() {
 
-            if (!hasImage || !image) {
-                // fallback to square
-                previewCanvas.width = rect.width;
-                previewCanvas.height = rect.width;
-            } else {
-                const imgRatio = image.width / image.height;
-                let canvasWidth = rect.width;
-                let canvasHeight = canvasWidth / imgRatio;
+    // get displayed frame size
+    const rect = frameContainer.getBoundingClientRect();
+    const fw = frameOverlay.naturalWidth;
+    const fh = frameOverlay.naturalHeight;
 
-                // if height exceeds container, adjust
-                if (canvasHeight > rect.height) {
-                    canvasHeight = rect.height;
-                    canvasWidth = canvasHeight * imgRatio;
-                }
+    // keep the frame aspect ratio
+    const frameRatio = fw / fh;
 
-                previewCanvas.width = canvasWidth;
-                previewCanvas.height = canvasHeight;
-            }
+    let canvasWidth = rect.width;
+    let canvasHeight = canvasWidth / frameRatio;
 
-            previewCtx = previewCanvas.getContext('2d');
-            
-        }
+    // height check
+    if (canvasHeight > rect.height) {
+        canvasHeight = rect.height;
+        canvasWidth = canvasHeight * frameRatio;
+    }
+
+    previewCanvas.width = canvasWidth;
+    previewCanvas.height = canvasHeight;
+
+    previewCtx = previewCanvas.getContext("2d");
+
+    // resize frame overlay to exactly match canvas
+    frameOverlay.style.width = canvasWidth + "px";
+    frameOverlay.style.height = canvasHeight + "px";
+}
+
         
         // Show message
         function showMessage(text, type = 'info') {
@@ -354,7 +385,7 @@
         console.log('Starting upload process...');
         // Show loading state
         const originalText = saveBtn.innerHTML;
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
         saveBtn.disabled = true;
 
         // Create high resolution canvas
@@ -464,6 +495,7 @@
                     saveBtn.disabled = false;
                     resolve(img);
                     saveArea.style.display = 'block';
+                    uploadButton.style.display = "none";
                 };
                 img.onerror = reject;
                 img.src = src;
@@ -543,55 +575,74 @@
         });
         
         // Touch support for mobile
- frameContainer.addEventListener("touchstart", function (e) {
+frameContainer.addEventListener("touchstart", function (e) {
     if (!hasImage) return;
 
     isDragging = true;
-    document.body.style.overflow = "hidden";
+   
+
+    // Important: record scroll offset only once
+    const scrollOffsetY = window.scrollY;
+    const scrollOffsetX = window.scrollX;
 
     const rect = frameContainer.getBoundingClientRect();
 
-    startX = e.touches[0].clientX - rect.left;
-    startY = e.touches[0].clientY - rect.top;
+    startX = e.touches[0].clientX + scrollOffsetX - rect.left;
+    startY = e.touches[0].clientY + scrollOffsetY - rect.top;
 
     startPosX = posX;
     startPosY = posY;
 
+    document.body.style.overflow = "hidden";
+     e.stopPropagation(); 
     e.preventDefault();
-});
+}, { passive: false });
 
-        
 frameContainer.addEventListener("touchmove", function (e) {
     if (!isDragging) return;
 
+    const scrollOffsetY = window.scrollY;
+    const scrollOffsetX = window.scrollX;
+
     const rect = frameContainer.getBoundingClientRect();
 
-    const currentX = e.touches[0].clientX - rect.left;
-    const currentY = e.touches[0].clientY - rect.top;
+    const currentX = e.touches[0].clientX + scrollOffsetX - rect.left;
+    const currentY = e.touches[0].clientY + scrollOffsetY - rect.top;
 
     const dx = currentX - startX;
     const dy = currentY - startY;
 
     const maxDrag = getMaxDrag();
+
     posX = Math.max(-maxDrag.x, Math.min(maxDrag.x, startPosX + dx));
     posY = Math.max(-maxDrag.y, Math.min(maxDrag.y, startPosY + dy));
 
     drawPreview();
+     e.stopPropagation(); 
     e.preventDefault();
-});
+}, { passive: false });
 
-
-document.addEventListener('touchend', () => {
+document.addEventListener("touchend", function () {
     isDragging = false;
-    document.body.style.overflow = "auto";  
+    document.body.style.overflow = "auto";
 });
 
-frameContainer.addEventListener('touchcancel', () => {
-    isDragging = false;
-    document.body.style.overflow = "auto";  
-});
+function lockPageScroll() {
+    if (!pageScrollLocked) {
+        pageScrollLocked = true;
+        document.body.style.overflow = "hidden";   // Prevent scrolling
+        document.body.style.touchAction = "none";  // Prevent touch scrolling
+    }
+}
         
- 
+ function unlockPageScroll() {
+    if (pageScrollLocked) {
+        pageScrollLocked = false;
+        document.body.style.overflow = "auto";
+        document.body.style.touchAction = "auto";
+    }
+}
+
         
         // Control buttons
         zoomInBtn.addEventListener('click', () => {
@@ -647,6 +698,8 @@ frameContainer.addEventListener('touchcancel', () => {
         // Handle frame overlay load
         frameOverlay.onload = function() {
             frameOverlay.style.display = 'block';
+              initCanvas();   // canvas must match frame dimensions
+    drawPreview();
         };
         
         // Handle window resize

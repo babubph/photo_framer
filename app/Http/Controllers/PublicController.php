@@ -9,7 +9,7 @@ use App\Models\UploadPhoto;
 class PublicController extends Controller
 {
     public function FramerHome(){
-          $data['frames'] = Frame::where('status', 'Active')->limit(4)->get();
+          $data['frames'] = Frame::where('status', 'Active')->limit(3)->get();
           return view('photo-framer', $data);
       }
 

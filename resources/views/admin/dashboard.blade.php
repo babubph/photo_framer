@@ -55,15 +55,21 @@
                     <th>SL</th>
                     <th>Photo</th>
                     <th>Date</th>
+                    <th>Time</th>
                     <th style="text-align: right">Actions</th>
                   </tr>
                   </thead>
                   <tbody>
                     @foreach($photos as $photo)  
+                    @php 
+                      list($day, $month, $year) = explode('-', $photo->cdate);
+                      $newDate = date("d F Y", mktime(0, 0, 0, $month, $day, $year));
+                    @endphp
                     <tr>
                         <td>{{ $loop->iteration }}</td>
                         <td> <img src="{{ asset('images/upload/' . $photo->photo) }}" alt="image" width="100"></td>
-                        <td>{{ $photo->cdate }}</td>
+                        <td>{{ $newDate }}</td>
+                        <td>{{ $photo->created_at }}</td>
                         <td style="text-align: right">
                             <a href="{{ url('images/upload/' . $photo->photo) }}" target="blank" class="btn btn-info btn-sm">View Photo</a>&nbsp;&nbsp;&nbsp;
                             <a class="btn btn-danger btn-sm" href="{{ route('delete-photo', $photo->id) }}" onClick="return confirmation()">Delete</a> 
